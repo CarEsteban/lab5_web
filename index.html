@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Laboratorio 5</title>
+  </head>
+  <body>
+    <script type="application/javascript">
+      // Configurar estilos globales del body
+      document.body.style.margin = "0";
+      document.body.style.padding = "0";
+
+      // Crear el contenedor principal
+      const mainContainer = document.createElement("div");
+      mainContainer.style.margin = "0 auto";
+      mainContainer.style.display = "flex";
+      mainContainer.style.flexDirection = "column";
+      mainContainer.style.justifyContent = "space-between";
+      mainContainer.style.alignItems = "stretch"; // Para que los contenedores usen todo el ancho
+      mainContainer.style.height = "100vh";
+
+      // Función para ajustar el layout según el tamaño de la ventana
+      function adjustLayout() {
+        if (window.innerWidth <= 768) {
+          mainContainer.style.width = "100vw";
+        } else {
+          mainContainer.style.width = "70vw";
+        }
+      }
+      adjustLayout();
+      window.addEventListener("resize", adjustLayout);
+
+      // Crear el contenedor para los chats
+      const chatContainer = document.createElement("div");
+      chatContainer.style.width = "100%";
+      chatContainer.style.height = "87%";
+      chatContainer.style.backgroundColor = "#006A71";
+      chatContainer.style.flex = "1";
+      chatContainer.style.overflowY = "auto";
+
+      // Crear el formulario para el área de escritura
+      const form = document.createElement("form");
+      form.style.width = "auto";
+      form.style.height = "13%";
+      form.style.backgroundColor = "#9ACBD0";
+      form.style.display = "flex";
+      form.style.alignItems = "center";
+      form.style.padding = "0 10px";
+
+      // Crear el input para escribir el mensaje
+      const inputText = document.createElement("input");
+      inputText.type = "text";
+      inputText.placeholder = "Escribe un mensaje...";
+      inputText.style.flex = "1";
+      inputText.style.height = "80%";
+      inputText.style.marginRight = "10px";
+      inputText.style.border = "none";
+      inputText.style.padding = "5px";
+
+      // Crear el botón para enviar el mensaje
+      const btnSend = document.createElement("button");
+      btnSend.type = "submit";
+      btnSend.textContent = "Send";
+
+      // Función que envía el mensaje
+      function sendMessage() {
+        // Evitar enviar mensajes vacíos
+        if (inputText.value.trim() === "") return;
+        const p = document.createElement("p");
+        p.style.color = "white";
+        p.style.margin = "10px";
+        p.textContent = inputText.value;
+        chatContainer.appendChild(p);
+        inputText.value = "";
+        // Opcional: hacer scroll hacia el final
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      // Enviar mensaje al hacer submit
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        sendMessage();
+      });
+
+      // Enviar mensaje al presionar Enter en el input
+      inputText.addEventListener("keyup", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+
+      // Agregar elementos al DOM
+      form.appendChild(inputText);
+      form.appendChild(btnSend);
+      mainContainer.appendChild(chatContainer);
+      mainContainer.appendChild(form);
+      document.body.appendChild(mainContainer);
+
+      // Simulación: Agregar mensajes iniciales para visualizar el scroll
+      /*for (let i = 1; i <= 10; i++) {
+        const p = document.createElement("p");
+        p.style.color = "white";
+        p.style.margin = "10px";
+        p.textContent = `Mensaje ${i} - Lorem ipsum dolor sit amet, consectetur...`;
+        chatContainer.appendChild(p);
+      }*/
+
+      async function getMessages() {
+        try {
+          const response = await fetch("https://chat.nrywhite.lat/chats");
+          const messages = await response.json();
+          console.log(response);
+          chatContainer.innerHTML = "";
+
+          messages.forEach((item) => {
+            const { username, message } = item;
+
+            const p = document.createElement("p");
+            p.style.color = "white";
+            p.style.margin = "10px";
+
+            p.textContent = `${username}: ${message}`;
+
+            chatContainer.appendChild(p);
+          });
+
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        } catch (error) {
+          console.error("Error al obtener los mensajes: ", error);
+        }
+      }
+
+      getMessages();
+
+      setInterval(() => {
+        getMessages();
+      }, 5000);
+    </script>
+  </body>
+</html>
