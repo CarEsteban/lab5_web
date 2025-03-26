@@ -7,18 +7,64 @@
   </head>
   <body>
     <script type="application/javascript">
-      // Configurar estilos globales del body
+      // Variable global de tema. Se lee de localStorage
+      let darkMode = localStorage.getItem("darkMode") === "true";
+
+      // Función para aplicar el tema (modo oscuro o claro)
+      function applyTheme() {
+        if (darkMode) {
+          document.body.style.backgroundColor = "#1e1e1e";
+          mainContainer.style.backgroundColor = "#2b2b2b";
+          chatContainer.style.backgroundColor = "#2b2b2b";
+          form.style.backgroundColor = "#333";
+        } else {
+          document.body.style.backgroundColor = "#e0e0e0";
+          mainContainer.style.backgroundColor = "#ffffff";
+          chatContainer.style.backgroundColor = "#ffffff";
+          form.style.backgroundColor = "#f9f9f9";
+        }
+      }
+
+      // Función para alternar el modo oscuro y guardar la preferencia
+      function toggleDarkMode() {
+        darkMode = !darkMode;
+        localStorage.setItem("darkMode", darkMode);
+        applyTheme();
+        getMessages();
+        btnDarkMode.textContent = darkMode ? "Modo Claro" : "Modo Oscuro";
+      }
+
+      // Botón para cambiar el modo (posición absoluta en la esquina superior izquierda)
+      const btnDarkMode = document.createElement("button");
+      btnDarkMode.textContent = darkMode ? "Modo Claro" : "Modo Oscuro";
+      btnDarkMode.style.position = "absolute";
+      btnDarkMode.style.top = "10px";
+      btnDarkMode.style.left = "10px";
+      btnDarkMode.style.padding = "8px 12px";
+      btnDarkMode.style.border = "none";
+      btnDarkMode.style.borderRadius = "4px";
+      btnDarkMode.style.cursor = "pointer";
+      btnDarkMode.style.backgroundColor = "#4CAF50";
+      btnDarkMode.style.color = "#fff";
+      btnDarkMode.addEventListener("click", toggleDarkMode);
+      document.body.appendChild(btnDarkMode);
+
+      // Establecer estilos globales para el body
       document.body.style.margin = "0";
       document.body.style.padding = "0";
 
-      // Crear el contenedor principal
+      // Crear el contenedor principal (tarjeta del chat)
       const mainContainer = document.createElement("div");
-      mainContainer.style.margin = "0 auto";
+      mainContainer.style.margin = "20px auto";
       mainContainer.style.display = "flex";
       mainContainer.style.flexDirection = "column";
       mainContainer.style.justifyContent = "space-between";
-      mainContainer.style.alignItems = "stretch"; // Para que los contenedores usen todo el ancho
-      mainContainer.style.height = "100vh";
+      mainContainer.style.alignItems = "stretch";
+      mainContainer.style.height = "90vh";
+      mainContainer.style.width = "70vw"; // se ajusta según la ventana
+      mainContainer.style.backgroundColor = "#ffffff";
+      mainContainer.style.borderRadius = "8px";
+      mainContainer.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
 
       // Función para ajustar el layout según el tamaño de la ventana
       function adjustLayout() {
@@ -31,53 +77,73 @@
       adjustLayout();
       window.addEventListener("resize", adjustLayout);
 
-      // Crear el contenedor para los chats
+      // Crear el contenedor para los chats (área de mensajes)
       const chatContainer = document.createElement("div");
       chatContainer.style.width = "100%";
-      chatContainer.style.height = "87%";
-      chatContainer.style.backgroundColor = "#006A71";
       chatContainer.style.flex = "1";
+      chatContainer.style.backgroundColor = "#ffffff";
       chatContainer.style.overflowY = "auto";
+      chatContainer.style.padding = "10px";
+      chatContainer.style.borderTopLeftRadius = "8px";
+      chatContainer.style.borderTopRightRadius = "8px";
 
       // Crear el formulario para el área de escritura
       const form = document.createElement("form");
-      form.style.width = "auto";
-      form.style.height = "13%";
-      form.style.backgroundColor = "#9ACBD0";
+      form.style.width = "100%";
+      form.style.backgroundColor = "#f9f9f9";
       form.style.display = "flex";
       form.style.alignItems = "center";
-      form.style.padding = "0 10px";
+      form.style.padding = "10px";
+      form.style.borderBottomLeftRadius = "8px";
+      form.style.borderBottomRightRadius = "8px";
+
+      // Crear el select para elegir el usuario
+      const selectUser = document.createElement("select");
+      selectUser.style.marginRight = "10px";
+      selectUser.style.padding = "5px";
+      selectUser.style.border = "1px solid #ccc";
+      selectUser.style.borderRadius = "4px";
+      const users = ["estebanquito"];
+      users.forEach((user) => {
+        const option = document.createElement("option");
+        option.value = user;
+        option.textContent = user;
+        selectUser.appendChild(option);
+      });
 
       // Crear el input para escribir el mensaje
       const inputText = document.createElement("input");
       inputText.type = "text";
       inputText.placeholder = "Escribe un mensaje...";
       inputText.style.flex = "1";
-      inputText.style.height = "80%";
+      inputText.style.height = "40px";
       inputText.style.marginRight = "10px";
-      inputText.style.border = "none";
+      inputText.style.border = "1px solid #ccc";
+      inputText.style.borderRadius = "4px";
       inputText.style.padding = "5px";
 
       // Crear el botón para enviar el mensaje
       const btnSend = document.createElement("button");
       btnSend.type = "submit";
       btnSend.textContent = "Send";
+      btnSend.style.padding = "10px 15px";
+      btnSend.style.border = "none";
+      btnSend.style.borderRadius = "4px";
+      btnSend.style.backgroundColor = "#4CAF50";
+      btnSend.style.color = "#fff";
+      btnSend.style.cursor = "pointer";
 
-      // Función que envía el mensaje
-      function sendMessage() {
-        // Evitar enviar mensajes vacíos
+      // Función que envía el mensaje localmente y lo postea a la API
+      async function sendMessage() {
         if (inputText.value.trim() === "") return;
-        const p = document.createElement("p");
-        p.style.color = "white";
-        p.style.margin = "10px";
-        p.textContent = inputText.value;
-        chatContainer.appendChild(p);
+        const user = selectUser.value;
+        const message = inputText.value;
+
+        await postMessage(user, message);
         inputText.value = "";
-        // Opcional: hacer scroll hacia el final
-        chatContainer.scrollTop = chatContainer.scrollHeight;
       }
 
-      // Enviar mensaje al hacer submit
+      // Enviar mensaje al hacer submit del formulario
       form.addEventListener("submit", (event) => {
         event.preventDefault();
         sendMessage();
@@ -91,47 +157,103 @@
         }
       });
 
-      // Agregar elementos al DOM
+      // Agregar elementos al DOM: primero el select, luego el input y el botón
+      form.appendChild(selectUser);
       form.appendChild(inputText);
       form.appendChild(btnSend);
       mainContainer.appendChild(chatContainer);
       mainContainer.appendChild(form);
       document.body.appendChild(mainContainer);
 
-      // Simulación: Agregar mensajes iniciales para visualizar el scroll
-      /*for (let i = 1; i <= 10; i++) {
-        const p = document.createElement("p");
-        p.style.color = "white";
-        p.style.margin = "10px";
-        p.textContent = `Mensaje ${i} - Lorem ipsum dolor sit amet, consectetur...`;
-        chatContainer.appendChild(p);
-      }*/
-
+      // Función asíncrona para obtener los mensajes del API
       async function getMessages() {
         try {
           const response = await fetch("https://chat.nrywhite.lat/chats");
           const messages = await response.json();
-          console.log(response);
+          // Limpiar el contenedor para evitar mensajes duplicados
           chatContainer.innerHTML = "";
 
           messages.forEach((item) => {
             const { username, message } = item;
+            // Contenedor para cada mensaje
+            const messageContainer = document.createElement("div");
+            messageContainer.style.margin = "10px 0";
+            messageContainer.style.display = "flex";
+            messageContainer.style.flexDirection = "column";
+            messageContainer.style.maxWidth = "80%";
 
-            const p = document.createElement("p");
-            p.style.color = "white";
-            p.style.margin = "10px";
+            // Crear el span para el usuario
+            const usernameSpan = document.createElement("span");
+            usernameSpan.textContent = username;
+            usernameSpan.style.fontWeight = "bold";
+            usernameSpan.style.padding = "3px 6px";
+            usernameSpan.style.borderRadius = "4px";
+            usernameSpan.style.alignSelf = "flex-start";
+            // Estilos según el tema
+            if (darkMode) {
+              usernameSpan.style.backgroundColor = "#666";
+              usernameSpan.style.color = "#fff";
+            } else {
+              usernameSpan.style.backgroundColor = "#4CAF50";
+              usernameSpan.style.color = "#fff";
+            }
 
-            p.textContent = `${username}: ${message}`;
+            // Crear el span para el mensaje
+            const messageSpan = document.createElement("span");
+            messageSpan.textContent = message;
+            messageSpan.style.padding = "8px";
+            messageSpan.style.borderRadius = "8px";
+            messageSpan.style.marginTop = "4px";
+            // Estilos según el tema
+            if (darkMode) {
+              messageSpan.style.backgroundColor = "#444";
+              messageSpan.style.color = "#ddd";
+              messageSpan.style.boxShadow = "0 1px 3px rgba(0,0,0,0.5)";
+            } else {
+              messageSpan.style.backgroundColor = "#f1f0f0";
+              messageSpan.style.color = "#333";
+              messageSpan.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+            }
 
-            chatContainer.appendChild(p);
+            // Agregar los spans al contenedor del mensaje
+            messageContainer.appendChild(usernameSpan);
+            messageContainer.appendChild(messageSpan);
+            // Agregar el contenedor del mensaje al chatContainer
+            chatContainer.appendChild(messageContainer);
           });
 
+          // Ajustar el scroll para mostrar el último mensaje
           chatContainer.scrollTop = chatContainer.scrollHeight;
         } catch (error) {
           console.error("Error al obtener los mensajes: ", error);
         }
       }
 
+      // Función asíncrona para postear un mensaje a la API
+      async function postMessage(user, message) {
+        try {
+          const response = await fetch("https://chat.nrywhite.lat/chats", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username: user,
+              message: message,
+            }),
+          });
+          if (!response.ok) {
+            console.error("Error en el POST:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error al enviar el mensaje: ", error);
+        }
+      }
+
+      // Aplicar el tema inicial
+      applyTheme();
+
+      // Obtener mensajes al cargar la página
       getMessages();
 
       setInterval(() => {
