@@ -7,6 +7,17 @@
   </head>
   <body>
     <script type="application/javascript">
+      /*****************************************
+       *  CALCULAR ALTURA REAL PARA MOBILE   *
+       *****************************************/
+      function setVh() {
+        // 1% de la altura de la ventana
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty("--vh", `${vh}px`);
+      }
+      // Ejecutar al cargar y en cambio de tamaño
+      setVh();
+      window.addEventListener("resize", setVh);
       /*****************************
        *       MODO OSCURO/CLARO   *
        *****************************/
@@ -65,7 +76,7 @@
       mainContainer.style.justifyContent = "space-between";
       mainContainer.style.alignItems = "stretch";
       mainContainer.style.width = "100vw";
-      mainContainer.style.height = "100vh";
+      mainContainer.style.height = "calc(var(--vh) * 100)";
       mainContainer.style.margin = "0";
       mainContainer.style.borderRadius = "0";
       mainContainer.style.boxShadow = "none";
@@ -84,7 +95,7 @@
         } else {
           // Vuelve a estilos "mobile first"
           mainContainer.style.width = "100vw";
-          mainContainer.style.height = "100vh";
+          mainContainer.style.height = "calc(var(--vh) * 100)";
           mainContainer.style.margin = "0";
           mainContainer.style.borderRadius = "0";
           mainContainer.style.boxShadow = "none";
@@ -176,7 +187,7 @@
         sendMessage();
       });
 
-      inputText.addEventListener("keyup", (event) => {
+      inputText.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
           event.preventDefault();
           sendMessage();
@@ -196,12 +207,6 @@
             messageContainer.style.display = "flex";
             messageContainer.style.flexDirection = "column";
             messageContainer.style.maxWidth = "80%";
-
-            //animacion cuando entra un mensaje
-            messageContainer.style.opacity = "0";
-            messageContainer.style.transform = "translateY(20px)";
-            messageContainer.style.transition =
-              "opacity 0.5s ease, transform 0.5s ease";
 
             // Span para username
             const usernameSpan = document.createElement("span");
